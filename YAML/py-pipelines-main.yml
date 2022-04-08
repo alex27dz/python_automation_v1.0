@@ -1,0 +1,48 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  - develop
+    
+stages:
+- stage: GeneralTests
+  jobs:
+  - template: py-pipeline-template.yml
+    parameters:
+      testFiles: 'test_jm-scenarios.py'
+      testStack: GeneralTests
+      browser: 'chrome'
+
+- stage: AboutTests
+  jobs:
+  - template: py-pipeline-template.yml
+    parameters:
+      testFiles: 'test_JMabout-scenarios.py'
+      testStack: AboutTests
+      browser: 'chrome'
+
+- stage: PageBodyTests
+  jobs:
+  - template: py-pipeline-template.yml
+    parameters:
+      testFiles: 'test_JMbody-scenarios.py'
+      testStack: PageBodyTests
+      browser: 'chrome'
+
+- stage: BusinessTests
+  jobs:
+  - template: py-pipeline-template.yml
+    parameters:
+      testFiles: 'test_JMbusiness-scenarios.py'
+      testStack: BusinessTests
+      browser: 'chrome'
+
+- stage: PageFooterTests
+  jobs:
+  - template: py-pipeline-template.yml
+    parameters:
+      testFiles: 'test_JMfooter-scenarios.py'
+      testStack: PageFooterTests
+      browser: 'chrome'

@@ -1,0 +1,73 @@
+parameters:
+  - name: preBuild
+    type: object
+    default: []
+  - name: postBuild
+    type: object
+    default: []
+  - name: testFiles
+    type: string
+    default: "**/*.py"
+  - name: browser
+    type: string
+    default: 'chrome'
+    values:
+      - 'chrome'
+      - 'firefox'
+      - 'ie'
+      - 'edge'
+  - name: runEnvironment
+    type: string
+    default: 'desktop'
+    values:
+      - 'desktop'
+      - 'tablet'
+      - 'mobile'
+      - 'browserstack'
+  - name: testStack
+    type: 'string'
+    default: 'All Specs'
+  - name: jobName
+    type: 'string'
+    default: 'RunTests'
+
+jobs:
+- job: ${{ parameters.jobName }}
+  pool:
+    vmImage: windows-latest
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "3.X"
+      addToPath: true
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    displayName: 'Install Requirements'
+    
+  - ${{ parameters.preBuild }}
+
+  - script: python runner.py --browser 'chrome' --test_name ${{ parameters.testFiles }} --directory $(Build.StagingDirectory) --report_name ${{ parameters.testStack }} 
+    displayName: 'Run tests'
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    displayName: 'Publish test results /test-results.xml'
+    inputs:
+      testResultsFiles: '$(Build.StagingDirectory)/${{ parameters.testStack }}.xml'
+      testRunTitle: "JUnit Results publishing"
+
+  - task: JakubRumpca.azure-pipelines-html-report.PublishHtmlReport.PublishHtmlReport@1
+    condition: always()
+    displayName: 'Publish HTML Report'
+    inputs:
+      tabName: 'HTML Reports'
+      reportDir: '$(Build.StagingDirectory)/${{ parameters.testStack }}.html'
+  
+  - ${{ parameters.postBuild }}
+    
+  # - template: ResultPublishingTemplate_Devices.yml
+  #  parameters:
+  #    runEnvironment: ${{ parameters.runEnvironment }}
+  #   testStack: ${{ parameters.testStack }}
+  #    testFiles: ${{ parameters.testFiles }}
